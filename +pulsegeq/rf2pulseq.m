@@ -1,16 +1,10 @@
-function [rfOut, ttOut] = rf2pulseq(rf, rasterIn, rasterOut, sys)
-% function [rfOut, ttOut] = rf2pulseq(rf, rasterIn, rasterOut)
+function rfout = rf2pulseq(rf,geRasterTime,seq,sys)
+% function rfout = rf2pulseq(rf,geRasterTime,seq)
+% convert rf units from Gauss to Hz, and interpolate to seq.rfRasterTime
 %
-% Convert rf waveform from Gauss to Hz, and interpolate to rasterOut
-%
-% Inputs
-%   rf            [n 1]   RF waveform, Gauss
-%   rasterIn      [1]     Input waveform raster time (sec)
-%   rasterOut     [1]     Output waveform raster time (sec)
-%
-% Output
-%   rfOut         [m 1]   RF waveform, Hz
-%   ttOut         [m 1]   Output waveform sample times (sec)
+% rf             [n 1]  RF waveform, Gauss
+% geRasterTime   [1]   sec
+% seq            Pulseq object. Only seq.rfRasterTime is used.
 
 % Di Cui: adapting for MNS
 if ~exist('sys','var')
@@ -19,14 +13,11 @@ else
     gamma = sys.gamma*1e-4;
 end
   
-rf = rf*gamma;     
-
-dur = numel(rf)*rasterIn;  
-ttIn = (1:length(rf))*rasterIn - rasterIn/2;
-ttOut = rasterOut/2:rasterOut:dur;
-
-rfOut = interp1(ttIn, rf, ttOut, 'linear', 'extrap');
-
-% return column vectors
-rfOut = rfOut(:);   
-ttOut = ttOut(:);   
+rf = rf*gamma;       % Hz
+T = numel(rf)*geRasterTime;   % pulse duration
+tge = 0:geRasterTime:(T-geRasterTime);
+t = 0:seq.rfRasterTime:(T-seq.rfRasterTime);
+rfout = interp1(tge, rf, t, 'linear', 'extrap');
+%L = 10; cutoff = 0.9;
+%rf = interp(rf,dt/rfRasterTime,L,cutoff);      % upsample from 4us to 1us
+return;
